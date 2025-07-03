@@ -1,0 +1,11 @@
+cobalt-audio-mp3/
+cobalt-audio-wma/
+cobalt-text-srt/
+cobalt-text-txt/
+esmii/
+nemo/
+.git/
+*.dta
+*.csv
+*.txt
+bristol_key
