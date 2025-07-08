@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --partition=sq
 #SBATCH --account=Research_Project-T116269
-#SBATCH --time=48:00:00
-#SBATCH --mem=5G
+#SBATCH --time=10-23:00:00
+#SBATCH --mem=16G
 #SBATCH --cpus-per-task=1
 
 #SBATCH --export=ALL      				 	# export all environment variables to the batch job.
@@ -20,6 +20,6 @@
 
 echo Starting wma to mp3 conversion...
 
-python wma_to_mp3.py
+python ctsr_comparison.py
 
 echo Files converted succesfully.

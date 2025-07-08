@@ -4,6 +4,13 @@ cobalt-text-srt/
 cobalt-text-txt/
 esmii/
 nemo/
+prompts/
+assessments/
+files/
+logs/
+llama.cpp-cpu/
+llama.cpp/
+llama.cpp-gpu/
 .git/
 *.dta
 *.csv
