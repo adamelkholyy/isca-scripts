@@ -13,13 +13,16 @@ def read_prompt(filepath):
 
 # initialize parser
 parser = argparse.ArgumentParser()
-
 parser.add_argument(
     "--file", "-f", 
     dest="file",
     help="path to therpay transcript for assessment",
 )
-
+parser.add_argument(
+    "--dir", "-d",
+    dest="dir",
+    help="output directory"
+)
 args = parser.parse_args()
 
 # load prompt files
@@ -29,23 +32,21 @@ ctsr_prompt = read_prompt("prompts/ctsr-prompt.txt")
 instruction_prompt = read_prompt("prompts/assessment-prompt.txt")
 instruction_prompt = instruction_prompt.replace("[TRANSCRIPT HERE]", transcript_content)
 
-# print(ctsr_prompt)
-# print(instruction_prompt)
 
 # llama.cpp interactive mode command
 os.chdir("/lustre/projects/Research_Project-T116269/llama.cpp-gpu/build/bin/")
 command = [
     "./llama-cli",
-    "--model", "/lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf",
+    "--model", "/lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf", # DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf
     "--seed", "42",
-    "--simple-io",
+    # "--simple-io",
     "-co",
     "-c", "25000",
     "--cache-type-k", "q8_0",
     "--n-gpu-layers", "29",
     "--top-k", "40",
     "--top-p", "0.950",
-    "--min-p, "0.050",
+    "--min-p", "0.050",
     "--temp", "0.200",
 ]
 
@@ -65,21 +66,23 @@ proc = subprocess.Popen(
 proc.stdin.write(ctsr_prompt + "\n")
 proc.stdin.flush()
 output, _ = proc.communicate(input=instruction_prompt)
+proc.stdin.close()
+proc.wait()
+
 print(output)
 raw_time = time.time() - start
 minutes, seconds = divmod(raw_time, 60)
 
-
 # write output to file
-os.chdir("/lustre/projects/Research_Project-T116269/")
+os.chdir("/lustre/projects/Research_Project-T116269/assessments")
 filename = os.path.basename(args.file)
-outpath = os.path.join("assessments", filename)
+os.makedirs(args.dir, exist_ok=True)
+outpath = os.path.join(args.dir, filename)
+
 with open(outpath, "w", encoding="utf-8") as f:
-    f.write(f"Time taken: {minutes}m {seconds:.2f}s \n" + output)
+    f.write(f"Time taken: {minutes}m {seconds:.2f}s" + "\nModel: Deepseek-r1 32B \n" + output)
 
-# finish process
-proc.stdin.close()
-proc.wait()
+with open("ctsr-prompt.txt", "w", encoding="utf-8") as f:
+    f.write(ctsr_prompt.replace("\\", "\n"))
 
-# timing
-print(f"\nllama.cpp GPU build completed successfully in {minutes}m {seconds:.2f}s")
+print(f"\nllama.cpp GPU build successfully ran cts-r on {filename} in {minutes}m {seconds:.2f}s")
