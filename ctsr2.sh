@@ -13,9 +13,9 @@
 #SBATCH --gres=gpu:1							# num gpus	
 #SBATCH --mem=16G								# requested memory	
 
-#SBATCH --output=logs/ctsr.out   						# submit script's standard-out
-#SBATCH --error=logs/ctsr.err    						# submit script's standard-error
-#SBATCH --job-name=ctsr
+#SBATCH --output=logs/ctsr2.out   						# submit script's standard-out
+#SBATCH --error=logs/ctsr2.err    						# submit script's standard-error
+#SBATCH --job-name=ctsr2
 
 
 cd /lustre/projects/Research_Project-T116269
@@ -30,6 +30,6 @@ module load CUDA/12.2.2
 echo Running script...
 
 # python buffer.py
-python run_ctsr.py
+python run_ctsr2.py
 
 echo Script complete.
