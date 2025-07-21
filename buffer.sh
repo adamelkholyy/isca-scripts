@@ -13,9 +13,9 @@
 #SBATCH --gres=gpu:1							# num gpus	
 #SBATCH --mem=16G								# requested memory	
 
-#SBATCH --output=logs/ctsr.out   						# submit script's standard-out
-#SBATCH --error=logs/ctsr.err    						# submit script's standard-error
-#SBATCH --job-name=ctsr
+#SBATCH --output=logs/ai-cbt.out   						# submit script's standard-out
+#SBATCH --error=logs/ai-cbt.err    						# submit script's standard-error
+#SBATCH --job-name=ai-cbt
 
 
 cd /lustre/projects/Research_Project-T116269
@@ -30,12 +30,14 @@ module load CUDA/12.2.2
 echo Running script...
 
 # python buffer.py
-python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Llama-70B-Q4_K_M.gguf --temps 0,0.6,0.8,1.0,1.2 --outdir 70b
-python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf --temps 0.6,1.0,1.2 --outdir 32b
+# python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Llama-70B-Q4_K_M.gguf --temps 0,0.6,0.8,1.0,1.2 --outdir 70b
+# python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf --temps 0.6,1.0,1.2 --outdir 32b
 
-python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Llama-70B-Q4_K_M.gguf --temps 0,0.2,0.6,0.8,1.0,1.2 --outdir 70b-stricter --instruction prompts/ctsr-individual-stricter.txt
-python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf --temps 0,0.2,0.6,0.8,1.0,1.2 --outdir 32b-stricter --instruction prompts/ctsr-individual-stricter.txt
+# python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Llama-70B-Q4_K_M.gguf --temps 0,0.2,0.6,0.8,1.0,1.2 --outdir 70b-stricter --instruction prompts/ctsr-individual-stricter.txt
+# python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf --temps 0,0.2,0.6,0.8,1.0,1.2 --outdir 32b-stricter --instruction prompts/ctsr-individual-stricter.txt
 
+
+python buffer.py
 
 echo Script complete.
 
