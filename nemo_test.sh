@@ -20,7 +20,7 @@ start_time=$(date +%s)
 echo Executing Python script...
 
 
-python diarize.py -a B314028_301_s10.mp3 --whisper-model large-v3 --language en --no-stem --surpress-numerals
+python diarize.py -a B314028_301_s10.mp3 --whisper-model large-v3 --language en --no-stem --suppress-numerals
 
 
 echo Script complete.

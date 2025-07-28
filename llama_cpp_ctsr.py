@@ -3,6 +3,9 @@ import subprocess
 import time
 import argparse
 
+
+print("Running llama_cpp_ctsr.py")
+
 # format prompt for llama.cpp
 def read_prompt(filepath):
     with open(filepath, "r", encoding="utf-8") as f:
@@ -129,7 +132,7 @@ os.makedirs(args.dir, exist_ok=True)
 outpath = os.path.join(args.dir, filename)
 
 with open(outpath, "w", encoding="utf-8") as f:
-    f.write(output + "\n\nParams:\n" + params + "Model: Deepseek-r1 32B \n" + f"Time taken: {minutes}m {seconds:.2f}s")
+    f.write(output + "\n\nParams:\n" + params + f"Model: {os.path.basename(args.model)}" + "\n" + f"Time taken: {minutes}m {seconds:.2f}s")
 
 with open(os.path.join(args.dir, "instruction-prompt.txt"), "w", encoding="utf-8") as f:
     f.write(base_instruction_prompt)
@@ -137,4 +140,4 @@ with open(os.path.join(args.dir, "instruction-prompt.txt"), "w", encoding="utf-8
 with open(os.path.join(args.dir, "system-prompt.txt"), "w", encoding="utf-8") as f:
     f.write(system_prompt)
 
-print(f"\nllama.cpp GPU build successfully ran cts-r on {filename} in {minutes}m {seconds:.2f}s")
+print(f"\nllama.cpp GPU build successfully ran cts-r on {filename} in {minutes}m {seconds:.2f}s, temp: {args.temp}, model: {os.path.basename(args.model)}")

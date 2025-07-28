@@ -8,7 +8,6 @@
 #SBATCH --account Research_Project-T116269    		# research project to submit under. 
 #SBATCH --priority=50000
 
-#SBATCH --nodes=1                                  		# specify number of nodes.
 #SBATCH --ntasks-per-node=16        				# specify number of processors per node
 #SBATCH --gres=gpu:1							# num gpus	
 #SBATCH --mem=16G								# requested memory	

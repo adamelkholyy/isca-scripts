@@ -6,13 +6,11 @@ esmii/
 nemo/
 prompts/
 assessments/
-files/
 logs/
 llama.cpp-cpu/
 llama.cpp-gpu/
-scripts/
+jla/
 .git/
 *.dta
 *.csv
 *.txt
-bristol_key

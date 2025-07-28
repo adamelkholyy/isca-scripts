@@ -8,14 +8,13 @@
 #SBATCH --account Research_Project-T116269    		# research project to submit under. 
 #SBATCH --priority=50000
 
-#SBATCH --nodes=1                                  		# specify number of nodes.
 #SBATCH --ntasks-per-node=16        				# specify number of processors per node
 #SBATCH --gres=gpu:1							# num gpus	
 #SBATCH --mem=16G								# requested memory	
 
-#SBATCH --output=logs/ai-cbt.out   						# submit script's standard-out
-#SBATCH --error=logs/ai-cbt.err    						# submit script's standard-error
-#SBATCH --job-name=ai-cbt
+#SBATCH --output=logs/log.out   						# submit script's standard-out
+#SBATCH --error=logs/log.err    						# submit script's standard-error
+#SBATCH --job-name=ai-cbt2
 
 
 cd /lustre/projects/Research_Project-T116269
@@ -29,20 +28,9 @@ module load CUDA/12.2.2
 
 echo Running script...
 
-# python buffer.py
-# python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Llama-70B-Q4_K_M.gguf --temps 0,0.6,0.8,1.0,1.2 --outdir 70b
-# python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf --temps 0.6,1.0,1.2 --outdir 32b
-
-# python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Llama-70B-Q4_K_M.gguf --temps 0,0.2,0.6,0.8,1.0,1.2 --outdir 70b-stricter --instruction prompts/ctsr-individual-stricter.txt
-# python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf --temps 0,0.2,0.6,0.8,1.0,1.2 --outdir 32b-stricter --instruction prompts/ctsr-individual-stricter.txt
 
 
-python buffer.py
+python buffer2.py
 
 echo Script complete.
 
-
-
-# /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf
-# /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf
-# /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Llama-70B-Q4_K_M.gguf
