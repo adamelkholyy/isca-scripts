@@ -19,11 +19,17 @@ if "stop" in flag:
     exit()
 
 print("Running script")
-# subprocess.run("./ctsr_experiments.sh", shell=True)
+
+
+subprocess.run("./ctsr_experiments.sh", shell=True)
+
+
 # subprocess.run("./jla.sh", shell=True)
-subprocess.run("./ctsr_dspy.sh", shell=True)
+# subprocess.run("./ctsr_dspy.sh", shell=True)
 
 
 with open("flag.txt", "w", encoding="utf-8") as f:
     f.write("stop")
+
+
 print("Script completed.")

@@ -63,19 +63,18 @@ duplicated_transcripts = [
 ]
 files = duplicated_transcripts
 
-prompts = ["cat2.txt", "chatgpt-cat2.txt", "heather-cat2.txt"]
 
 for temp in args.temps.split(","):
     start = time.time()
     for f in files:
-        for p in prompts:
+        for i in range(1, 13):
             filename = f"{args.outdir}-temp-{temp}/{f[:-4]}"
             # subprocess.run(f"python llama_cpp_ctsr.py -f cobalt-text-txt/{f} --dir {filename} --ctsr prompts/cats/cat{i}.txt --instruction {args.instruction_prompt} --sys prompts/system-prompt.txt --temp {temp} --model {args.model} --num-gpu {args.num_gpu} --num-batch {args.num_batch}", shell=True,)
             command = [
                 "python", "llama_cpp_ctsr.py",
                 "-f", f"cobalt-text-txt/{f}",
                 "--dir", filename,
-                "--ctsr", f"prompts/feedback/{p}",
+                "--ctsr", f"prompts/cats/cat{i}.txt",
                 "--instruction", args.instruction_prompt,
                 "--temp",  temp,
                 "--model", args.model,

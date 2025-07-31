@@ -2,7 +2,10 @@ import os
 import subprocess
 import time
 import argparse
+from evaluate import get_scores
+from evaluate import calculate_error
 
+os.chdir("/lustre/projects/Research_Project-T116269")
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -19,7 +22,7 @@ parser.add_argument(
 parser.add_argument(
     "--outdir", "-d",
     dest="outdir",
-    default="",
+    default="./",
     help="name of output directory",
 )
 parser.add_argument(
@@ -40,13 +43,33 @@ parser.add_argument(
     default="2048",
     help="number of tokens per batch (default=2048, adjust lower if running out of CUDA memory)",
 )
+parser.add_argument(
+    "--cat", "-c",
+    dest="cat",
+    default="-1",
+    help="ctsr category to run",
+)
+parser.add_argument(
+    "--sys", "-s",
+    dest="sys_prompt",
+    default=None,
+    help="path to system prompt",
+)
+
+
+
 
 args = parser.parse_args()
 
 if not args.outdir:
     args.outdir = os.path.basename(args.model)
 
-os.chdir("/lustre/projects/Research_Project-T116269")
+if (c := int(args.cat)) == -1:
+    cats = range(1, 13)
+else:
+    cats = [c]
+
+
 with open("rated_transcripts.txt", "r", encoding="utf-8") as f:
     files = f.read().split("\n")
 
@@ -66,28 +89,38 @@ files = duplicated_transcripts
 
 for temp in args.temps.split(","):
     start = time.time()
-    for f in files:
-        for i in range(1, 13):
-            filename = f"{args.outdir}-temp-{temp}/{f[:-4]}"
-            # subprocess.run(f"python llama_cpp_ctsr.py -f cobalt-text-txt/{f} --dir {filename} --ctsr prompts/cats/cat{i}.txt --instruction {args.instruction_prompt} --sys prompts/system-prompt.txt --temp {temp} --model {args.model} --num-gpu {args.num_gpu} --num-batch {args.num_batch}", shell=True,)
+    total_cat_errors = {c: 0 for c in cats}
+    for file in files:
+        for cat in cats:
+            dirname = f"{args.outdir}-temp-{temp}/{file[:-4]}"
             command = [
                 "python", "llama_cpp_ctsr.py",
-                "-f", f"cobalt-text-txt/{f}",
-                "--dir", filename,
-                "--ctsr", f"prompts/cats/cat{i}.txt",
+                "-f", f"cobalt-text-txt/{file}",
+                "--dir", dirname,
+                "--ctsr", f"prompts/cats/cat{cat}.txt",
                 "--instruction", args.instruction_prompt,
                 "--temp",  temp,
                 "--model", args.model,
                 "--num-gpu", args.num_gpu, 
                 "--num-batch", args.num_batch, 
             ]
+            command += ["--sys", args.sys_prompt] if args.sys_prompt else []
             subprocess.run(command)
 
+            ai_score, human_score = get_scores(dirname, cat=cat)
+            error = calculate_error(ai_score, human_score)
+            total_cat_errors[cat] += error
 
     raw_time = time.time() - start
     hours, remainder = divmod(raw_time, 3600)
     mins, secs = divmod(remainder, 60)
-    print(f"Succesfully ran cts-r on {len(files)} files  with temp {temp} in {int(hours)}h {int(mins)}m {int(secs)}s")
+    print(f"Succesfully ran cts-r on {len(files)} files in {args.outdir} with temp {temp} on cats {cats} in {int(hours)}h {int(mins)}m {int(secs)}s")
+
+    print("Average errors:")
+    for cat, total_err in total_cat_errors.items():
+        print(f"Cat {cat}:     {total_err/len(files)}")
+
+
 
 
 

@@ -5,26 +5,12 @@ import dspy
 import re
 import csv
 
-# TODO:
-# Tweak scoring metric: -100 for no score?, exponential errors - ((err * 10)^2) = -360, 0
-# -500, 0 ->  + 500 * 0.02
-# 
 
-"""
-    if pred_score == -1:
-        score = -5000
-    else:
-        # error bounds = [0, 6] # 360, 0 
-        error = abs(example.score - pred_score) * 10
-        error = error * error
-        score = error + 5000
-        score = score * 0.0002
-"""
 
 # settings
 os.chdir("/lustre/projects/Research_Project-T116269/")
 MODEL = "32b-ctsr"
-CAT = 1
+CAT = 9
 
 
 # human-rated cts-r scores
@@ -57,8 +43,8 @@ def get_ai_score(ctsr_assessment):
     if isinstance(ctsr_assessment, int):
         return ctsr_assessment        
 
+    # try to retrieve ai scores via regex
     try:
-        # try to get ai score with regex
         ai_score = re.search(r"boxed\{(\d)\}", ctsr_assessment)
         if not ai_score:
             ai_score = re.search(r"(\d)/6", ctsr_assessment)
@@ -75,37 +61,92 @@ def get_ai_score(ctsr_assessment):
         return -1
 
 
-def scoring_metric(example, pred, predictor_obj=None, trace=None):
-    print("\nPrediction")
-    print(pred)
-    print("\nPredictor obj")
-    print(predictor_obj)
+# scoring metrics for dspy
+def scoring_metric(metric):
+    def wrapped_metric(example, pred, predictor_obj=None, trace=None):
+        pred_score = get_ai_score(pred.ctsr_assessment)
+        score = metric(pred_score, example.score)
 
-    # scoring metric: between [0, 1], 0 for no score, else 1 - abs(error)/10
-    pred_score = get_ai_score(pred.ctsr_assessment)
+        print(pred)
+        print(f"Example score: {example.score}")
+        print(f"Predicted score: {pred_score}")
+        print(f"Score: {score}")
+        return score
+    return wrapped_metric
 
-    
+
+@scoring_metric
+def negative_absolute_error(pred_score, example_score):
+    if pred_score == -1:
+        score = -10
+    else:
+        error = abs(example_score - pred_score)
+        score = -error
+    return score
+
+@scoring_metric
+def scaled_absolute_error(pred_score, example_score):
     if pred_score == -1:
         score = 0
     else:
-        # error bounds = [0, 6] # 360, 0 
-        error = abs(example.score - pred_score)
+        error = abs(example_score - pred_score)
         score = 1 - (error*0.1)
-    
-    print("\n" + f"Score: {score}")
     return score
+
+@scoring_metric
+def negative_squared_error(pred_score, example_score):
+    if pred_score == -1:
+        score = -100
+    else:
+        error = abs(example_score - pred_score)
+        score = -(error**2)
+    return score
+
+
+
+"""
+def scoring_metric(example, pred, predictor_obj=None, trace=None):
+
+    pred_score = get_ai_score(pred.ctsr_assessment)
+    score = negative_absolute_error(pred_score, example.score)
+
+    print(pred)
+    print(f"Example score: {example.score}")
+    print(f"Predicted score: {pred_score}")
+    print(f"Score: {score}")
+    return score
+"""
+    
+
     
 
 
-# generate training set of examples 
-def generate_trainset(cat):
+def generate_inter_rater_trainset(cat):
+    transcripts = {}
+    trainset = []
+    for row in ctsr_scores:
+        filename = row[0]
+        if filename in transcripts:
+            average_cat = (float(transcripts[filename][cat]) + float(row[cat]))/2
+            transcript_prompt = get_transcript_prompt(os.path.join("cobalt-text-txt", filename))
+            example = dspy.Example(transcript_prompt=transcript_prompt, score=average_cat).with_inputs("transcript_prompt")
+            trainset.append(example)
+        else:
+            transcripts[filename] = row
+    print(f"Generated inter-rater trainset with {len(trainset)} examples")
+    return trainset
+
+
+# generate full training set of examples 
+def generate_full_trainset(cat):
     trainset = []
     for row in ctsr_scores:
         transcript_prompt = get_transcript_prompt(os.path.join("cobalt-text-txt", row[0]))
         example = dspy.Example(transcript_prompt=transcript_prompt, score=float(row[cat])).with_inputs("transcript_prompt")
         trainset.append(example)
-    print(f"Generated trainset with {len(trainset)} examples")
+    print(f"Generated full trainset with {len(trainset)} examples")
     return trainset
+
 
 
 # predictor class for prompt training
@@ -123,25 +164,33 @@ class CTSRAssessorChain(dspy.Signature):
 
 
 # setup and test llm
-print("Loading and testing LLM")
+print("Loading LLM")
 lm = dspy.LM(f'ollama/{MODEL}', api_base='http://localhost:11434', api_key='')
-dspy.configure(lm=lm)
-
-# output = lm("Hi!")  # => ['This is a test!'] (, temperature=0.7 optional arg)
-# print(output)
+dspy.configure(lm=lm, adapter=dspy.ChatAdapter())
 
 
-# run SIMBA for prompt fine-tuning
+# run prompt fine-tuning
 start = time.time()
+
 predictor_model = dspy.Predict(CTSRAssessor)
 chain_of_thought_model = dspy.ChainOfThought(CTSRAssessorChain)
+metric = negative_absolute_error
 
-tp = dspy.SIMBA(metric=scoring_metric)
-trainset = generate_trainset(CAT)
+simba = dspy.SIMBA(metric=metric)
+mipro = dspy.MIPROv2(metric=metric, auto="light")
+copro = dspy.COPRO(metric=metric)
+bootstrap_fs_random_search = dspy.BootstrapFewShotWithRandomSearch(metric=metric)
+bootstrap_finetune = dspy.BootstrapFinetune(metric=metric)
 
-optimized_model = tp.compile(chain_of_thought_model, trainset=trainset)
-optimized_model.save("optimised_model.json")
 
-hrs, rem = divmod(start - time.time(), 3600)
+model = chain_of_thought_model
+tp = mipro 
+trainset = generate_inter_rater_trainset(CAT)
+
+
+optimized_model = tp.compile(model, trainset=trainset, requires_permission_to_run=False) # <- turn on for MIPRO!
+optimized_model.save("mipro_heavy.json")
+
+hrs, rem = divmod(time.time() - start, 3600)
 mins, secs = divmod(rem, 60)
 print(f"Completed in {hrs}h {mins}m {secs:.2f}s")

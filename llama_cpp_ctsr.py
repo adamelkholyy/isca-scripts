@@ -89,6 +89,7 @@ command = [
     "./llama-cli",
     "--simple-io",
     "-no-cnv",
+    "--no-display-prompt",
     "-sys", args.system_prompt,
     "--model", args.model, # "/lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf", # DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf
     "--seed", "42",
