@@ -12,10 +12,7 @@ mins = 0.1
 time.sleep(60 * mins)
 
 # run script if flag is set
-with open("flag.txt", "r", encoding="utf-8") as f:
-    flag = f.read()
-
-if "stop" in flag:
+if os.path.isfile("flag.txt"):
     exit()
 
 print("Running script")
@@ -29,7 +26,7 @@ subprocess.run("./ctsr_experiments.sh", shell=True)
 
 
 with open("flag.txt", "w", encoding="utf-8") as f:
-    f.write("stop")
+    f.write(".")
 
 
 print("Script completed.")

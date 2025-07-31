@@ -9,7 +9,7 @@ assessments/
 logs/
 llama.cpp-cpu/
 llama.cpp-gpu/
-jla/
+averages/
 .git/
 *.dta
 *.csv
