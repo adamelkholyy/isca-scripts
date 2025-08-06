@@ -10,7 +10,7 @@ import csv
 # settings
 os.chdir("/lustre/projects/Research_Project-T116269/")
 MODEL = "32b-ctsr"
-CAT = 3
+CAT = 9
 
 
 # human-rated cts-r scores
@@ -160,51 +160,8 @@ class CTSRAssessorChain(dspy.Signature):
     transcript_prompt: str = dspy.InputField()
     ctsr_assessment: int = dspy.OutputField() # desc=ctsr_prompt)
     
-
-
-##################################################
-
-class CTSRPromptEvaluator(dspy.Signature):
-    base_ctsr_prompt: str = dspy.InputField()
-    transcript_prompt: str = dspy.InputField()
-    ctsr_assessment: int = dspy.OutputField(desc=base_ctsr_prompt) 
-    
-
-class CTSRPromptGenerator(dspy.Signature):
-    transcript_prompt: str = dspy.InputField()
-    base_ctsr_prompt: str = dspy.InputField()
-    score: float = dspy.InputField()
-    ctsr_prompt: int = dspy.OutputField(desc="Modify base_ctsr_prompt for clarity and maximum effectiveness. A reviewer should be able to use your new prompt to assess the transcript_prompt and produce the correct score. Note that the correct score has been given to you for reference, in order to create a good ctsr_prompt; the score is different each time in practice, and as such you are not to hard-code the score into your new prompt.")
-
-def generate_ctsr_prompt_trainset(cat):
-    trainset = []
-    base_ctsr_prompt = ctsr_prompt
-    for row in ctsr_scores:
-        transcript_prompt = get_transcript_prompt(os.path.join("cobalt-text-txt", row[0]))
-        example = dspy.Example(transcript_prompt=transcript_prompt, base_ctsr_prompt=base_ctsr_prompt, score=float(row[cat])).with_inputs("transcript_prompt", "base_ctsr_prompt", "score")
-        trainset.append(example)
-    print(f"Generated full trainset with {len(trainset)} examples")
-    return trainset
-
-
-def ctsr_prompt_metric(example, pred, predictor_obj=None, trace=None):
-    chain_of_thought_model = dspy.ChainOfThought(CTSRPromptEvaluator)
-    score_pred = chain_of_thought_model.predict(transcript_prompt=example.transcript_prompt, base_ctsr_prompt=pred.ctsr_prompt)
-    pred_score = get_ai_score(score_pred.ctsr_assessment)
-
-    if pred_score == -1:
-        score = -10
-    else:
-        error = abs(example.score - pred_score)
-        score = -error
-    
-    print(score_pred)
-    print(f"Example score: {example.score}")
-    print(f"Predicted score: {pred_score}")
-    print(f"Score: {score}")
-    return score
-
-    
+# TODO
+# module where we optimise ctsr_prompt = dspy.OutputField(): a set of instructions for CTSR scoring, score these based on how well CTSRAssessorChain scores!
 
 # setup and test llm
 print("Loading LLM")
@@ -215,80 +172,27 @@ dspy.configure(lm=lm, adapter=dspy.ChatAdapter())
 # run prompt fine-tuning
 start = time.time()
 
-
-
-
-#######################################################
-#Compile program on current dspy.settings.lm
-trainset = generate_full_trainset(CAT)
-program = dspy.ChainOfThought(CTSRAssessor)
-tp = dspy.BootstrapFewShotWithRandomSearch(metric=negative_absolute_error, max_bootstrapped_demos=2)
-your_dspy_program_compiled = tp.compile(program , trainset=trainset)
-
-your_dspy_program_compiled.save("bootstrapFSRandom.json")
-config = dict(target=lm, epochs=2, bf16=True, bsize=6, accumsteps=2, lr=5e-5)
-
-#Compile program on BootstrapFinetune
-finetune_optimizer = dspy.BootstrapFinetune(metric=negative_absolute_error)
-finetune_program = finetune_optimizer.compile(program , trainset=trainset , **config)
-finetune_program.save("finetune.json")
-
-#Load program and activate model's parameters in program before evaluation
-ckpt_path = "saved_checkpoint_path_from_finetuning"
-LM = dspy.HFModel(checkpoint=ckpt_path, model=lm)
-
-for p in finetune_program.predictors():
-    p.lm = LM
-    p.activated = False
-
-
-"""
-#######################################################
-# COPRO
-eval_kwargs = dict(num_threads=16, display_progress=True, display_table=0)
-copro_teleprompter = dspy.COPRO(prompt_model=lm, metric=negative_absolute_error, verbose=True)
-trainset = generate_full_trainset(CAT)
-compiled_program_optimized_signature = copro_teleprompter.compile(dspy.ChainOfThought(CTSRAssessor), trainset=trainset, eval_kwargs=eval_kwargs)
-compiled_program_optimized_signature.save("copro.json")
-"""
-
-
-"""
-#######################################################
-# MIPRO
-model = dspy.ChainOfThought(CTSRPromptGenerator)
-trainset = generate_ctsr_prompt_trainset(CAT)
-mipro = dspy.MIPROv2(metric=ctsr_prompt_metric, auto=None, verbose=True, max_bootstrapped_demos=0, max_labeled_demos=0, num_candidates=10)
-
-optimized_model = mipro.compile(model, trainset=trainset, num_trials=15,  requires_permission_to_run=False) # <- turn on for MIPRO!
-optimized_model.save("mipro_promptgen_test.json")
-"""
-
-
-"""
-
-class Emotion(dspy.Signature):
-    """Classify emotion."""
-
-    sentence: str = dspy.InputField()
-    sentiment: Literal['sadness', 'joy', 'love', 'anger', 'fear', 'surprise'] = dspy.OutputField()
-
-"""
-
-
-
-hrs, rem = divmod(time.time() - start, 3600)
-mins, secs = divmod(rem, 60)
-print(f"Completed in {hrs}h {mins}m {secs:.2f}s")
-
-
-#######################################################
-"""
-metric = lambda x: 1
-simba = dspy.SIMBA(metric=metric)
 predictor_model = dspy.Predict(CTSRAssessor)
+chain_of_thought_model = dspy.ChainOfThought(CTSRAssessorChain)
+metric = negative_absolute_error
+
+simba = dspy.SIMBA(metric=metric)
+mipro = dspy.MIPROv2(metric=metric, auto="light")
+
 
 copro = dspy.COPRO(metric=metric)
 bootstrap_fs_random_search = dspy.BootstrapFewShotWithRandomSearch(metric=metric)
 bootstrap_finetune = dspy.BootstrapFinetune(metric=metric)
-"""
+
+
+model = chain_of_thought_model
+tp = mipro 
+trainset = generate_inter_rater_trainset(CAT)
+
+
+optimized_model = tp.compile(model, trainset=trainset, requires_permission_to_run=False) # <- turn on for MIPRO!
+optimized_model.save("mipro_heavy.json")
+
+hrs, rem = divmod(time.time() - start, 3600)
+mins, secs = divmod(rem, 60)
+print(f"Completed in {hrs}h {mins}m {secs:.2f}s")

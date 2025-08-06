@@ -40,7 +40,7 @@ parser.add_argument(
 parser.add_argument(
     "--sys",
     dest="sys_prompt",
-    default="prompts/system-prompt.txt",
+    default="prompt/default-prompt.txt",
     help="path to system prompt",
 )
 parser.add_argument(
@@ -172,7 +172,7 @@ for temp in args.temp:
     cat_scores["info"] = {"cat": {args.cat}, "experiment": experiment_name, "temp": temp, "average error": average_error}
 
     # log average error and output to averages file
-    score_data = json.dumps(cat_scores, indent=3, default=list)
+    score_data = json.dumps(cat_scores, indent=3)
     logging.info(score_data)
     with open(os.path.join("averages", f'{experiment_name}-{temp}.json'), "w", encoding="utf-8") as f:
         f.write(score_data)

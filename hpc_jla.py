@@ -17,7 +17,7 @@ with open('/lustre/projects/Research_Project-T116269/jla/jla.csv') as f:
 
 output_path = "/lustre/projects/Research_Project-T116269/jla/output.txt"
 prompt_path = "/lustre/projects/Research_Project-T116269/jla/prompt.txt"
-model_path = "/lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf"
+model_path = "/lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf"
 
 # get prompts
 system_prompt = "You are a perinatal mental health researcher. You have a list of research suggestions and are categorising them by topic."
@@ -27,41 +27,48 @@ def generate_prompt(user_input):
     
     {user_input}
 
-    using the following categories: 
+    using up to 6 of the following categories: 
 
-    Assessment
-    Baby loss/removal
+    Attitudes/beliefs
+    Assessment (describing, labelling or diagnosing a problem)      
+    Baby loss (termination, death, abortion, miscarriage, still birth)					
+    Baby removal (loss of custody, safeguarding, social services)	    
     Birth support
     Causes/mechanism/risk
     Context
     Evolution
     Family (includes dad)
-    Health and pregnancy outcomes
+    Health and preganancy outcomes (premature, hyperemesis)					
     Infant feeding
     Infertility
-    Maternity
+    Maternity (antenatal, postnatal, obstetric, labour, childbirth)
+    Neonatal care 										
     Neurodivergence (autism, adhd etc.) 
     Onset 
     Parenting
     Peer support
-    Prevalence
+    Prevalence (how many of x...)
     Prevention
     Severity
     Social support
-    Stigma/attitudes
+    Sigma (disgrace, shame, humiliation)    
     Substance use
     Suicide
     Trauma
-    Treatment
+    Treatment (PNMHT, MMHT, perinatal mental health service, maternal mental health service )					
     Work
 
+				
+
     Any research suggestions with no relevance/mention of mental health are to be excluded. In this case mark their category as 'Excluded'.
-    You may assign multiple categories. Your categories must be ranked in order of importance. You must only assign a category if it is strictly relevant to the research suggestion. 
+    You may assign up to 6 categories. Your categories must be ranked in order of importance. You must only assign a category if it is strictly relevant to the research suggestion. 
     """
     # removed "Mental health" category.
     with open(prompt_path, "w", encoding="utf-8") as f:
         f.write(prompt)
 
+# prevalence is the proportion of a population who have a specific characteristic in a given time period. 
+ 
 
 os.chdir("/lustre/projects/Research_Project-T116269/llama.cpp-gpu/build/bin/")
 print(os.listdir("."))
@@ -99,6 +106,7 @@ for i, row in enumerate(data):
     generate_prompt(suggestion)
     model_output = run_llama()
     categories = filter_categories(model_output)
+    print(categories)
     category_data.append([id, suggestion] + categories)
 
     print(f"{i+1}/{limit} | {(i+1)/limit *100:.2f}%")

@@ -33,13 +33,13 @@ echo bash: Running ctsr experiments
 # python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf --temps 0.0,0.6,0.8,1.0,1.2,2.0 --outdir 32b-decimal-effect --num-gpu 65 --cat 5 --instruction prompts/ctsr-individual-decimals.txt
 # python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf --temps 0.0,0.6,0.8,1.0,1.2,2.0 --outdir 32b-decimal-guided --num-gpu 65 --cat 8 --instruction prompts/ctsr-individual-decimals.txt
 
+# python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf --temps 0.0 0.6 0.8 1.0 1.2 2.0 --outdir 32b-revised-collab --cat 3 --instruction prompts/revised-ctsr-individual.txt
+# python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Llama-70B-Q4_K_M.gguf --temps 0.0 0.6 0.8 1.0 1.2 2.0 --outdir 70b-revised-collab --cat 3 --instruction prompts/revised-ctsr-individual.txt
 
 
 # test
-# python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf  --outdir assessments/test --cat 8 
+python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf --outdir assessments/test --cat 8 --test
 
 
-python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf --temps 0.0 0.6 0.8 1.0 1.2 2.0 --outdir 32b-revised-collab --cat 3 --instruction prompts/revised-ctsr-individual.txt
-python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Llama-70B-Q4_K_M.gguf --temps 0.0 0.6 0.8 1.0 1.2 2.0 --outdir 70b-revised-collab --cat 3 --instruction prompts/revised-ctsr-individual.txt
 
 echo bash: ctsr experiments complete

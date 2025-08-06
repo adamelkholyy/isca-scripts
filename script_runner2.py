@@ -18,10 +18,10 @@ if os.path.isfile("flag.txt"):
 print("Running script")
 
 
-subprocess.run("./ctsr_experiments.sh", shell=True)
+# subprocess.run("./ctsr_experiments.sh", shell=True)
 
 
-# subprocess.run("./jla.sh", shell=True)
+subprocess.run("./jla.sh", shell=True)
 # subprocess.run("./ctsr_dspy.sh", shell=True)
 
 
