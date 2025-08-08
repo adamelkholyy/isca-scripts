@@ -14,23 +14,21 @@
 
 #SBATCH --output=logs/log.out   						# submit script's standard-out
 #SBATCH --error=logs/log.err    						# submit script's standard-error
-#SBATCH --job-name=ai-cbt2
+#SBATCH --job-name=ctsr
 
 
 cd /lustre/projects/Research_Project-T116269
 
-echo Loading modules...
+echo Loading slurm modules
 
 module load Python/3.11.3-GCCcore-12.3.0                                                   
 module load CMake/3.26.3-GCCcore-12.3.0
 module load GCCcore/12.3.0
 module load CUDA/12.2.2
 
-echo Running script...
-
-
+echo Running script
 
 python buffer2.py
 
-echo Script complete.
+echo Script complete
 

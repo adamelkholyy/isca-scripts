@@ -1,8 +1,6 @@
 import os
-import subprocess
 import time
 import argparse
-
 from llama_cpp import Llama
 from langchain_community.chat_models import ChatLlamaCpp
 from langchain_community.llms import LlamaCpp
@@ -11,7 +9,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.prompts import ChatPromptTemplate
 
 
-# format prompt for llama.cpp
+# Format prompt for llama.cpp
 def read_prompt(filepath):
     with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
@@ -20,9 +18,7 @@ def read_prompt(filepath):
     return content
 
 
-# initialize parser
 parser = argparse.ArgumentParser()
-
 parser.add_argument(
     "--file", "-f", 
     dest="file",
@@ -34,13 +30,10 @@ parser.add_argument(
     default=False,
     help="toggle verbose output",
 )
-
-
 args = parser.parse_args()
 
 
-# load prompts
-os.chdir("/lustre/projects/Research_Project-T116269/")
+# Load prompts
 transcript_content = read_prompt(args.file)
 ctsr_prompt = read_prompt("prompts/ctsr-prompt.txt")
 assistant_prompt = read_prompt("prompts/assistant-prompt.txt")
@@ -54,9 +47,10 @@ prompt_template = ChatPromptTemplate([
 ])
 
 
-# callbacks support token-wise streaming
+# Callbacks support token-wise streaming
 callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
 
+# Llama.cpp parameters
 llm = LlamaCpp(
     model_path="/lustre/projects/Research_Project-T116269/llama.cpp/models/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf",
     seed=42,
@@ -73,7 +67,7 @@ llm = LlamaCpp(
 )
 
 
-# run llama.cpp with langchain
+# Run llama.cpp with langchain
 llm_chain = prompt_template  | llm
 print(f"Running CTS-R assessment on {args.file} using llama-cpp-python with GPU build")
 start = time.time()
@@ -82,7 +76,7 @@ end = time.time() - start
 mins, secs = divmod(end, 60)
 
 
-# write output to file
+# Write outputs to file
 filename = os.path.basename(args.file)
 outpath = os.path.join("assessments", filename)
 with open(outpath, "w", encoding="utf-8") as f:

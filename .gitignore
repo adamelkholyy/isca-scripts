@@ -10,6 +10,7 @@ logs/
 llama.cpp-cpu/
 llama.cpp-gpu/
 averages/
+__pycache__/
 .git/
 *.dta
 *.csv
