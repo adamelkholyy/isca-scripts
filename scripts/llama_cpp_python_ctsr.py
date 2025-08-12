@@ -1,12 +1,14 @@
+import argparse
 import os
 import time
-import argparse
-from llama_cpp import Llama
+
 from langchain_community.chat_models import ChatLlamaCpp
 from langchain_community.llms import LlamaCpp
-from langchain_core.callbacks import CallbackManager, StreamingStdOutCallbackHandler
-from langchain_core.prompts import PromptTemplate
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.callbacks import (CallbackManager,
+                                      StreamingStdOutCallbackHandler)
+from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
+
+from llama_cpp import Llama
 
 
 # Format prompt for llama.cpp
@@ -20,12 +22,14 @@ def read_prompt(filepath):
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--file", "-f", 
+    "--file",
+    "-f",
     dest="file",
     help="path to therpay transcript for assessment",
 )
 parser.add_argument(
-    "--verbose", "-v", 
+    "--verbose",
+    "-v",
     dest="verbose",
     default=False,
     help="toggle verbose output",
@@ -40,11 +44,13 @@ assistant_prompt = read_prompt("prompts/assistant-prompt.txt")
 instruction_prompt = read_prompt("prompts/assessment-prompt.txt")
 instruction_prompt = instruction_prompt.replace("[TRANSCRIPT HERE]", transcript_content)
 
-prompt_template = ChatPromptTemplate([
-    ("system", ctsr_prompt),
-    ("user", "{question}"),
-    ("assistant", assistant_prompt),
-])
+prompt_template = ChatPromptTemplate(
+    [
+        ("system", ctsr_prompt),
+        ("user", "{question}"),
+        ("assistant", assistant_prompt),
+    ]
+)
 
 
 # Callbacks support token-wise streaming
@@ -61,14 +67,14 @@ llm = LlamaCpp(
     top_k=40,
     repeat_penalty=1.1,
     top_p=0.95,
-    model_kwargs={'n': -1, 'temp':0.8, 'min_p':0.05},
-    verbose=args.verbose,  					
+    model_kwargs={"n": -1, "temp": 0.8, "min_p": 0.05},
+    verbose=args.verbose,
     callback_manager=callback_manager if args.verbose else None,
 )
 
 
 # Run llama.cpp with langchain
-llm_chain = prompt_template  | llm
+llm_chain = prompt_template | llm
 print(f"Running CTS-R assessment on {args.file} using llama-cpp-python with GPU build")
 start = time.time()
 model_output = llm_chain.invoke({"question": instruction_prompt})

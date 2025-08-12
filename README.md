@@ -62,7 +62,6 @@ ps aux | grep python
 
 
 
-
 ## ISCA directory structure 
 (make this into a table)     
 
@@ -82,7 +81,9 @@ JLA
 dspy 
 (didn't work well for ctsr, worked for JLA)
 
-ollama 
+install_ollama 
+
+ctsr.modelfile
 
 
 misc extras: (one liners explaining remaining scripts)

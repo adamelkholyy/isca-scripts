@@ -2,17 +2,21 @@ import os
 import subprocess
 import time
 
-# format estimated finish time into HH:MM:SS
+
+# Format estimated finish time into HH:MM:SS
 def format_time(seconds):
     total_hours, remainder = divmod(seconds, 3600)
     minutes, secs = divmod(remainder, 60)
     return f"{int(total_hours):02}:{int(minutes):02}:{int(secs):02}"
 
+
 os.chdir("/lustre/projects/Research_Project-T116269/")
 
 # separate unconverted files
 processed_files = [f[:-4] for f in os.listdir("cobalt-audio-mp3")]
-unprocessed_files = [f for f in os.listdir("cobalt-audio-wma") if f[:-4] not in processed_files]
+unprocessed_files = [
+    f for f in os.listdir("cobalt-audio-wma") if f[:-4] not in processed_files
+]
 total_processed_files = len(processed_files)
 total_unprocessed_files = len(unprocessed_files)
 
@@ -20,7 +24,7 @@ wmas = 1
 total_time = 60
 for file in unprocessed_files:
 
-    # calculate ETA using rolling average time
+    # Calculate ETA using rolling average time
     average_time = total_time / wmas
     eta_seconds = average_time * (total_unprocessed_files - wmas)
     eta_formatted = format_time(eta_seconds)
@@ -30,7 +34,8 @@ for file in unprocessed_files:
     subprocess.run(
         [
             "ffmpeg",
-            "-loglevel", "panic",
+            "-loglevel",
+            "panic",
             "-y",
             "-i",
             f"cobalt-audio-wma/{file}",
@@ -41,7 +46,7 @@ for file in unprocessed_files:
     )
     end = time.time() - start
 
-    # append timing info to logfile
+    # Append timing info to logfile
     with open("wma_to_mp3_log.txt", "a", encoding="utf-8") as f:
         f.write(
             "\n"

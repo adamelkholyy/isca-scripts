@@ -1,16 +1,15 @@
-
+import csv
+import os
+import re
 import subprocess
 import time
-import csv
-import re
-import os
 
 # Naive prompting for JLA categorisation.
 # Replaced with jla_dspy which uses the DSpy module to limit the model's category choices
 
 # Load data = [idx, question_id, question_num, question]
-with open('/lustre/projects/Research_Project-T116269/jla.csv') as f:
-    reader = csv.reader(f, delimiter=',', dialect="excel")
+with open("/lustre/projects/Research_Project-T116269/jla.csv") as f:
+    reader = csv.reader(f, delimiter=",", dialect="excel")
     data = [row for row in reader if row][1:]
     print(data)
 
@@ -88,6 +87,7 @@ def run_llama():
     print(f"llama.cpp completed in {minutes}m {seconds:.2f}s")
     return content
 
+
 # Filter model categories via regex for csv output
 # TODO: Wrap this in try, except (because regexes...)
 def filter_categories(model_output):
@@ -112,5 +112,9 @@ for i, row in enumerate(data[:n]):
 # Write outputs to file
 print(category_data)
 file_str = "\n".join([",".join([col for col in row]) for row in category_data])
-with open("/lustre/projects/Research_Project-T116269/jla/categories.csv", "w", encoding="utf-8") as f:
+with open(
+    "/lustre/projects/Research_Project-T116269/jla/categories.csv",
+    "w",
+    encoding="utf-8",
+) as f:
     f.write(file_str)

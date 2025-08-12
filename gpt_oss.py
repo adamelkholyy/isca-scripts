@@ -1,8 +1,5 @@
-from transformers import pipeline
 import torch
-
-
-
+from transformers import pipeline
 
 model_id = "openai/gpt-oss-120b"
 

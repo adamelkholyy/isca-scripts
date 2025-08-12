@@ -1,7 +1,7 @@
-import subprocess
-import time
 import datetime
 import os
+import subprocess
+import time
 
 os.chdir("/lustre/projects/Research_Project-T116269")
 
