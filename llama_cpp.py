@@ -2,13 +2,17 @@ import logging
 import os
 import subprocess
 import time
+
 from pathlib import Path
+from typing import TypeAlias
+
+PathType: TypeAlias = str | os.PathLike
 
 logger = logging.getLogger(__name__)
 logger.info(f"Running {__name__}")
 
 
-def read_prompt(filepath: str | os.PathLike):
+def read_prompt(filepath: PathType):
     with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -17,23 +21,23 @@ def read_prompt(filepath: str | os.PathLike):
     return content
 
 
-def write_to_file(filepath: str | os.PathLike, text: str):
+def write_to_file(filepath: PathType, text: str):
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(text)
 
 
 # Call llama.cpp for ctsr assessment
 def run_llama_cpp(
-    transcript_path: str | os.PathLike,
-    ctsr_prompt_path: str | os.PathLike,
-    instruction_prompt_path: str | os.PathLike,
-    system_prompt_path: str | os.PathLike,
-    outdir: str | os.PathLike,
-    model: str | os.PathLike,
+    transcript_path: PathType,
+    ctsr_prompt_path: PathType,
+    instruction_prompt_path: PathType,
+    system_prompt_path: PathType,
+    outdir: PathType,
+    model: PathType,
     temp: float = 0.7,
     n_gpu_layers: int = 0,
     batch_size: int = 2048,
-    ctx_size: int = 0,
+    ctx_size: int = 0, 
     seed: int = 42,
     cache_type_k: str = "q8_0",
     top_k: int = 40,
@@ -42,19 +46,20 @@ def run_llama_cpp(
 ) -> str:
     """
 
-    Run CTS-R evaluation on a transcript using llama.cpp.
+    Run CTS-R evaluation on a transcript using llama.cpp.     
+    PathType: TypeAlias = str | os.PathLike
 
     Args:
-        transcript_path (str | os.PathLike): Path to the transcript file.
-        ctsr_prompt_path (str | os.PathLike): Path to the CTS-R category prompt file.
-        instruction_prompt_path (str | os.PathLike): Path to the instruction prompt file (includes placeholder for transcript).
-        system_prompt_path (str | os.PathLike): Path to the system prompt file.
-        outdir (str | os.PathLike): Directory to save the output files.
-        model (str | os.PathLike): Path to the llama.cpp model file.
+        transcript_path (PathType): Path to the transcript file.
+        ctsr_prompt_path (PathType): Path to the CTS-R category prompt file.
+        instruction_prompt_path (PathType): Path to the instruction prompt file (includes placeholder for transcript).
+        system_prompt_path (PathType): Path to the system prompt file.
+        outdir (PathType): Directory to save the output files.
+        model (PathType): Path to the llama.cpp model file.
         temp (float, optional): Temperature for sampling. Default is 0.7.
         n_gpu_layers (int, optional): Number of layers to offload to GPU. Default is 0.
         batch_size (int, optional): Token batch size. Default is 2048.
-        ctx_size (int, optional): Model context size. Default is 0 (use full model context).
+        ctx_size (int, optional): Model context size. Default is 0 (full model context).
         seed (int, optional): Random seed for reproducibility. Default is 42.
         cache_type_k (str, optional): Cache type used for key layers. Default is "q8_0".
         top_k (int, optional): Top-K sampling parameter. Default is 40.
@@ -97,23 +102,23 @@ def run_llama_cpp(
     ]
     command = list(map(str, command))
 
-    logger.info(f"Running {command[0]} build on {transcript_path}")
+    logger.info(f"Running llama.cpp on {transcript_path}")
     start = time.time()
 
     # Run llama.cpp
-    out_bytes = subprocess.check_output(command, cwd="./llama.cpp-gpu/build/bin")
+    out_bytes = subprocess.check_output(command, cwd="./llama.cpp/build/bin")
     output = out_bytes.decode("utf-8")
+    logger.info(output)
 
     raw_time = time.time() - start
     minutes, seconds = divmod(raw_time, 60)
-    logger.info(output)
 
     # Make outdir and format filenames
     filename = f"{Path(transcript_path).stem}_{os.path.basename(ctsr_prompt_path)}"
     model_name = os.path.basename(model)
     os.makedirs(outdir, exist_ok=True)
 
-    # Pprint model parameters for output file
+    # PPrint model parameters for output file
     params = "\n".join(
         [
             f"{command[i]:<20} = {command[i+1]}"
@@ -135,4 +140,5 @@ def run_llama_cpp(
     logger.info(
         f"{nl} llama.cpp GPU build successfully ran cts-r on {filename} in {int(minutes)}m {seconds:.2f}s, temp: {temp}, model: {model_name}"
     )
+
     return output

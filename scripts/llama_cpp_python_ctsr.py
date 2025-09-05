@@ -4,8 +4,7 @@ import time
 
 from langchain_community.chat_models import ChatLlamaCpp
 from langchain_community.llms import LlamaCpp
-from langchain_core.callbacks import (CallbackManager,
-                                      StreamingStdOutCallbackHandler)
+from langchain_core.callbacks import CallbackManager, StreamingStdOutCallbackHandler
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 
 from llama_cpp import Llama
@@ -76,6 +75,7 @@ llm = LlamaCpp(
 # Run llama.cpp with langchain
 llm_chain = prompt_template | llm
 print(f"Running CTS-R assessment on {args.file} using llama-cpp-python with GPU build")
+
 start = time.time()
 model_output = llm_chain.invoke({"question": instruction_prompt})
 end = time.time() - start
@@ -85,6 +85,7 @@ mins, secs = divmod(end, 60)
 # Write outputs to file
 filename = os.path.basename(args.file)
 outpath = os.path.join("assessments", filename)
+
 with open(outpath, "w", encoding="utf-8") as f:
     f.write(f"Time taken: {int(mins)}m {secs:.2f}s" + "\n\n" + model_output)
 

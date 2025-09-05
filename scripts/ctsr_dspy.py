@@ -1,10 +1,13 @@
-print("Importing modules")
 import csv
 import os
 import re
 import time
-
 import dspy
+
+""" 
+Code for running dspy on the CTSR prompt for automatic tuning. 
+Archived due to poor performance, human prompting was found to be much more efficient. 
+"""
 
 # Settings
 MODEL = "32b-ctsr"

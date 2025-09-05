@@ -38,7 +38,7 @@ echo bash: Running ctsr experiments
 
 
 # test
-python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp-gpu/models/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf --outdir assessments/test --cat 8 --test
+python run_ctsr.py --model /lustre/projects/Research_Project-T116269/llama.cpp/models/gpt-oss-120b-mxfp4-00001-of-00003.gguf --outdir assessments/test --cat 8 --test --sys prompts/gpt-oss-system-prompt.txt
 
 
 
